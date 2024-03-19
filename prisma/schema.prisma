@@ -2,19 +2,26 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-    provider = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-    provider = "postgresql"
-    url      = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
-model Post {
-    id        Int      @id @default(autoincrement())
-    name      String
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-
-    @@index([name])
+model User {
+  id           Int            @id @default(autoincrement())
+  username     String         @unique
+  email        String         @unique
+  password     String
+  categories   Category[]
 }
+
+model Category {
+  id           Int            @id @default(autoincrement())
+  name         String         @unique
+  description  String?
+  users        User[]
+}
+
