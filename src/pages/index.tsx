@@ -40,7 +40,7 @@ function EcommerceLoginPage() {
         </form>
         <div className="mt-7 h-px shrink-0 bg-stone-300 max-md:max-w-full" />
         <div className="mt-8 flex gap-3.5 self-center">
-          <p className="grow text-zinc-800">Don't have an Account?</p>
+          <p className="grow text-zinc-800">{`Don't have an Account?`}</p>
           <button
             className="relative mb-auto box-border shrink-0 cursor-pointer appearance-none rounded text-center text-black"
             type="button"
@@ -54,8 +54,9 @@ function EcommerceLoginPage() {
 }
 
 export default function Home() {
-  const hello = api.post.hello.useQuery({ text: "from tRPC" });
-
+  // const hello = api.post.hello.useQuery({ text: "from tRPC" });
+  const cats = api.category.getAll.useQuery();
+  console.log('cats', cats)
   return (
     <>
       <Header />

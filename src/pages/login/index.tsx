@@ -34,6 +34,7 @@ function LoginPage() {
           <button
             type="submit"
             className=" .box-border mt-[40px] flex w-full shrink-0 cursor-pointer appearance-none flex-col items-center rounded bg-black px-6 py-4 text-center font-medium tracking-wider text-[white]"
+            onClick={() => console.log('login')}
           >
             {"LOGIN"}
           </button>
@@ -53,7 +54,6 @@ function LoginPage() {
   );
 }
 export default function Home() {
-  const hello = api.post.hello.useQuery({ text: "from tRPC" });
 
   return (
     <>

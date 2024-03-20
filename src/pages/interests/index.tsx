@@ -4,71 +4,19 @@ import { FormHeader } from "~/components/formHeader";
 import { BannerStrip } from "~/components/bannerStrip";
 import { Checkbox } from "~/components/checkbox";
 import { PageLayout } from "~/components/layout";
-
-interface DataItem {
-  id: number;
-  name: string;
-}
-
-const data: DataItem[] = [
-  {
-    id: 1,
-    name: "Item1",
-  },
-  {
-    id: 2,
-    name: "Item2",
-  },
-  {
-    id: 3,
-    name: "Item3",
-  },
-  {
-    id: 4,
-    name: "Item4",
-  },
-  {
-    id: 5,
-    name: "Item5",
-  },
-  {
-    id: 6,
-    name: "Item6",
-  },
-  {
-    id: 7,
-    name: "Item7",
-  },
-  {
-    id: 8,
-    name: "Item8",
-  },
-  {
-    id: 9,
-    name: "Item9",
-  },
-  {
-    id: 10,
-    name: "Item10",
-  },
-  {
-    id: 11,
-    name: "Item11",
-  },
-  {
-    id: 12,
-    name: "Item12",
-  },
-  {
-    id: 13,
-    name: "Item13",
-  },
-];
+import {api} from "~/utils/api";
 
 const dataLimit = 6;
 export const UserInterests = ({}) => {
   const [selected, setSelected] = useState<number[]>([]);
   const [page, setPage] = useState<number>(0);
+
+  const { data, isLoading } = api.category.getAll.useQuery();
+
+  if (isLoading) return <p> Loading.... </p>;
+  console.log(data)
+
+  if (!data || data.length === 0) return <div>User has not posted</div>;
 
   const handleCheckboxChange = (index: number) => {
     if (selected.includes(index)) {
