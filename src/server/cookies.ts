@@ -1,43 +1,30 @@
 import cookie, { type CookieSerializeOptions } from "cookie";
+import { type NextApiRequest, type NextApiResponse } from "next";
 
-const getCookiesString = (req: Request) => {
-  const cookieHeader = req.headers.get("Cookie");
-  return cookieHeader ?? "";
-};
-
-const getCookies = (req: Request) => {
-  const cookieHeader = req.headers.get("Cookie");
-  if (!cookieHeader) return {};
-  return cookie.parse(cookieHeader);
-};
-
-const getCookie = (req: Request, name: string) => {
-  const cookieHeader = req.headers.get("Cookie");
-  if (!cookieHeader) return;
-  const cookies = cookie.parse(cookieHeader);
-  return cookies[name];
+const getCookie = (req: NextApiRequest, name: string) => {
+  const cookie = req.cookies;
+  if (!cookie) return;
+  return req.cookies[name];
 };
 
 const setCookie = (
-  resHeaders: Headers,
+  res: NextApiResponse,
   name: string,
   value: string,
   options?: CookieSerializeOptions,
 ) => {
-  resHeaders.set("Set-Cookie", cookie.serialize(name, value, options));
+  res.setHeader("Set-Cookie", cookie.serialize(name, value, options));
 };
 
 const deleteCookie = (
-  resHeaders: Headers,
+  res: NextApiResponse,
   name: string,
   options?: CookieSerializeOptions,
 ) => {
-  resHeaders.set("Set-Cookie", cookie.serialize(name, "", options));
+  res.setHeader("Set-Cookie", cookie.serialize(name, "", options));
 };
 
 export const Cookies = {
-  string: getCookiesString,
-  getAll: getCookies,
   get: getCookie,
   set: setCookie,
   delete: deleteCookie,

@@ -13,17 +13,20 @@ import { decrypt, encrypt } from "~/server/crypto";
 import { JWT_KEY, maxAge } from "~/utils/constant";
 import { Cookies } from "~/server/cookies";
 import * as process from "process";
+import { SignJWT } from "jose";
+import { nanoid } from "nanoid";
+import { getJwtSecret } from "~/lib/auth";
 
-export const authRouter = createTRPCRouter({
+export const userRouter = createTRPCRouter({
   register: unAuthProcedure
     .input(
       z.object({
-        name: z.string(),
+        name: z.string().min(3).max(20),
         email: z.string().email(),
-        password: z.string(),
+        password: z.string().min(3).max(20),
       }),
     )
-    .query(async ({ input, ctx }) => {
+    .mutation(async ({ input, ctx }) => {
       const { name, email, password } = input;
       const user = await db.user.findUnique({ where: { email } });
 
@@ -42,7 +45,7 @@ export const authRouter = createTRPCRouter({
     }),
   login: unAuthProcedure
     .input(z.object({ email: z.string().email(), password: z.string() }))
-    .mutation(async ({ input, ctx }) => {
+    .mutation(async ({ input, ctx: { res } }) => {
       const { email, password } = input;
       const user = await db.user.findUnique({
         where: {
@@ -65,15 +68,14 @@ export const authRouter = createTRPCRouter({
         });
       }
 
-      const jwtToken = jwt.sign(
-        { userId: user.id },
-        process.env.JWT_SECRET ?? "",
-        {
-          expiresIn: maxAge,
-        },
-      );
+      const jwtToken = await new SignJWT({})
+        .setProtectedHeader({ alg: "HS256" })
+        .setJti(nanoid())
+        .setIssuedAt()
+        .setExpirationTime("1 day")
+        .sign(new TextEncoder().encode(getJwtSecret()));
 
-      Cookies.set(ctx.resHeaders, JWT_KEY, jwtToken, {
+      Cookies.set(res, JWT_KEY, jwtToken, {
         maxAge,
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
@@ -83,8 +85,8 @@ export const authRouter = createTRPCRouter({
 
       return { userId: user.id };
     }),
-  logout: authProcedure.mutation(async ({ input, ctx }) => {
-    Cookies.delete(ctx.resHeaders, JWT_KEY, {
+  logout: authProcedure.mutation(async ({ input, ctx: { res } }) => {
+    Cookies.delete(res, JWT_KEY, {
       maxAge: 0,
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",

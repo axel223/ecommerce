@@ -10,9 +10,8 @@ import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
 
-import { db } from "~/server/db";
-import { FetchCreateContextFnOptions } from "@trpc/server/adapters/fetch";
 import { getUserInfo } from "~/server/auth";
+import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
 
 /**
  * 1. CONTEXT
@@ -46,9 +45,10 @@ import { getUserInfo } from "~/server/auth";
  *
  * @see https://trpc.io/docs/context
  */
-export const createContext = async (ctx: FetchCreateContextFnOptions) => {
-  const userInfo = await getUserInfo(ctx.req);
-  return { ...ctx, userInfo, userId: userInfo?.id };
+export const createTRPCContext = async (opts: CreateNextContextOptions) => {
+  const { req, res } = opts;
+  const userInfo = await getUserInfo(req);
+  return { userInfo, userId: userInfo?.id, req, res };
 };
 /**
  * 2. INITIALIZATION
@@ -57,8 +57,8 @@ export const createContext = async (ctx: FetchCreateContextFnOptions) => {
  * ZodErrors so that you get typesafety on the frontend if your procedure fails due to validation
  * errors on the backend.
  */
-type Context = Awaited<ReturnType<typeof createContext>>;
-const t = initTRPC.context<Context>().create({
+
+const t = initTRPC.context<typeof createTRPCContext>().create({
   transformer: superjson,
   errorFormatter({ shape, error }) {
     return {
@@ -100,17 +100,16 @@ export const createTRPCRouter = t.router;
  * guarantee that a user querying is authorized, but you can still access user session data if they
  * are logged in.
  */
-export const publicProcedure = t.procedure;
 
 const isAuthed = t.middleware(({ ctx, next }) => {
-  if (!ctx.userInfo) {
+  if (!ctx?.userInfo) {
     throw new TRPCError({ code: "UNAUTHORIZED", message: "Please login" });
   }
   return next();
 });
 
 const isUnAuthed = t.middleware(({ ctx, next }) => {
-  if (!!ctx.userInfo) {
+  if (!!ctx?.userInfo) {
     throw new TRPCError({
       code: "FORBIDDEN",
       message: "You are already login",
@@ -119,5 +118,6 @@ const isUnAuthed = t.middleware(({ ctx, next }) => {
   return next();
 });
 
+export const publicProcedure = t.procedure;
 export const authProcedure = publicProcedure.use(isAuthed);
 export const unAuthProcedure = publicProcedure.use(isUnAuthed);

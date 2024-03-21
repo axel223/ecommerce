@@ -2,13 +2,14 @@ import jwt from "jsonwebtoken";
 import { JWT_KEY } from "~/utils/constant";
 import { db } from "./db";
 import { Cookies } from "./cookies";
+import { type NextApiRequest } from "next";
 
 export type IUserInfo = {
   id: string;
   name: string;
 } | null;
 
-export const getUserInfo = async (request: Request) => {
+export const getUserInfo = async (request: NextApiRequest) => {
   const token = Cookies.get(request, JWT_KEY);
 
   if (!token) return null;

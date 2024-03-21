@@ -4,17 +4,17 @@ import { FormHeader } from "~/components/formHeader";
 import { BannerStrip } from "~/components/bannerStrip";
 import { Checkbox } from "~/components/checkbox";
 import { PageLayout } from "~/components/layout";
-import {api} from "~/utils/api";
+import { api } from "~/utils/api";
 
 const dataLimit = 6;
 export const UserInterests = ({}) => {
   const [selected, setSelected] = useState<number[]>([]);
   const [page, setPage] = useState<number>(0);
 
-  const { data, isLoading } = api.category.getAll.useQuery();
+  const { data, isLoading } = api().category.getAll.useQuery();
 
   if (isLoading) return <p> Loading.... </p>;
-  console.log(data)
+  console.log(window.sessionStorage);
 
   if (!data || data.length === 0) return <div>User has not posted</div>;
 
@@ -34,7 +34,9 @@ export const UserInterests = ({}) => {
         heading={"Please mark your interests!"}
         description={"We will keep you notified."}
       />
-      <h2 className="mb-7 text-xl font-medium text-left text-black">{"My saved interests!"}</h2>
+      <h2 className="mb-7 text-left text-xl font-medium text-black">
+        {"My saved interests!"}
+      </h2>
       {data
         .slice(page * dataLimit, (page + 1) * dataLimit)
         .map((ele, index) => {
@@ -51,7 +53,11 @@ export const UserInterests = ({}) => {
       <button className={"mr-1"} key={"first"} onClick={() => setPage(0)}>
         {"<<"}
       </button>
-      <button className={"m-1"} key={"prev"} onClick={() => setPage(page - 1 > 0 ? page - 1 : page)}>
+      <button
+        className={"m-1"}
+        key={"prev"}
+        onClick={() => setPage(page - 1 > 0 ? page - 1 : page)}
+      >
         {"<"}
       </button>
       {pages.map((number, index) => (
@@ -59,10 +65,18 @@ export const UserInterests = ({}) => {
           {number + 1}
         </button>
       ))}
-      <button className={"ml-1"} key={"next"} onClick={() => setPage(page + 1 != pages.length ? page + 1 : page)}>
+      <button
+        className={"ml-1"}
+        key={"next"}
+        onClick={() => setPage(page + 1 != pages.length ? page + 1 : page)}
+      >
         {">"}
       </button>
-      <button className={"ml-1"} key={"last"} onClick={() => setPage(pages.length - 1)}>
+      <button
+        className={"ml-1"}
+        key={"last"}
+        onClick={() => setPage(pages.length - 1)}
+      >
         {">>"}
       </button>
     </div>

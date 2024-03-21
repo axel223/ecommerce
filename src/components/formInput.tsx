@@ -1,24 +1,32 @@
-import { FC, useState } from "react";
+import React, { useState } from "react";
+import {
+  type FieldValues,
+  type Path,
+  type UseFormRegister,
+} from "react-hook-form";
 
-interface FormInputProps {
-  label: string;
-  placeholder: string;
-  name: string;
+export type FormInputProps<TFormValues extends FieldValues> = {
   id: string;
+  label: string;
   className: string;
+  placeholder: string;
   protectedField: boolean;
+  name: Path<TFormValues>;
+  register: UseFormRegister<TFormValues>;
   required?: boolean;
-}
+};
 
-export const FormInput: FC<FormInputProps> = ({
-  label,
-  placeholder,
-  name,
+export const FormInput = <TFormValues extends Record<string, unknown>>({
   id,
+  label,
   className,
+  placeholder,
   protectedField,
-  required = true,
-}) => {
+  name,
+  register,
+  required,
+  ...props
+}: FormInputProps<TFormValues>): React.JSX.Element => {
   const [showProtectedField, setShowProtectedField] = useState(!protectedField);
 
   return (
@@ -28,6 +36,8 @@ export const FormInput: FC<FormInputProps> = ({
           {label}
         </label>
         <input
+          {...register?.(name)}
+          {...props}
           type={showProtectedField ? "text" : "password"}
           placeholder={placeholder}
           name={name}
