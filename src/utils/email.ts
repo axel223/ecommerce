@@ -15,8 +15,7 @@ export const sendEmail = async (
     });
   }
   const transporter = nodemailer.createTransport({
-    host: "live.smtp.mailtrap.io",
-    port: 587,
+    service: "gmail",
     auth: {
       user: MAIL_ID,
       pass: MAIL_PASS,
