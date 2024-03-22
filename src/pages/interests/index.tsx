@@ -89,7 +89,7 @@ export const UserInterests = ({}) => {
         heading={"Please mark your interests!"}
         description={"We will keep you notified."}
       />
-      <h2 className="mb-7 text-left text-xl font-medium text-black">
+      <h2 className="mb-7 mt-[40px] text-left text-xl font-medium text-black">
         {"My saved interests!"}
       </h2>
       {currentItems.map((ele) => {

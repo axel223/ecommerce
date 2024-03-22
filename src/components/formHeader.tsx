@@ -16,12 +16,12 @@ export const FormHeader: FC<FormHeaderProps> = ({
       <h2 className="w-auto self-center text-3xl font-semibold text-black">
         {heading}
       </h2>
-      <p className="mt-9 self-center text-2xl font-medium text-black">
+      {subHeading && <p className="mt-9 self-center text-2xl font-medium text-black">
         {subHeading}
-      </p>
-      <p className="mt-[13px] self-center text-black">
+      </p>}
+      {description && <p className="mt-[13px] self-center text-black">
         {description}
-      </p>
+      </p>}
     </div>
   );
 };
