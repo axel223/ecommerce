@@ -10,7 +10,7 @@ import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
 
-import { getUserInfo } from "~/server/auth";
+import {getUserInfo, getUserInfoByEmail} from "~/server/auth";
 import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
 
 /**
@@ -48,7 +48,8 @@ import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
 export const createTRPCContext = async (opts: CreateNextContextOptions) => {
   const { req, res } = opts;
   const userInfo = await getUserInfo(req);
-  return { userInfo, userId: userInfo?.id, req, res };
+  const userInfoByEmail = await getUserInfoByEmail(req);
+  return { userInfo, userId: userInfo?.id, userInfoByEmail, req, res };
 };
 /**
  * 2. INITIALIZATION
@@ -108,6 +109,13 @@ const isAuthed = t.middleware(({ ctx, next }) => {
   return next();
 });
 
+const isTempAuthed = t.middleware(({ ctx, next }) => {
+  if (!ctx?.userInfoByEmail) {
+    throw new TRPCError({ code: "UNAUTHORIZED", message: "Please Sign Up" });
+  }
+  return next();
+});
+
 const isUnAuthed = t.middleware(({ ctx, next }) => {
   if (!!ctx?.userInfo) {
     throw new TRPCError({
@@ -121,3 +129,4 @@ const isUnAuthed = t.middleware(({ ctx, next }) => {
 export const publicProcedure = t.procedure;
 export const authProcedure = publicProcedure.use(isAuthed);
 export const unAuthProcedure = publicProcedure.use(isUnAuthed);
+export const tempAuthProcedure = publicProcedure.use(isTempAuthed);

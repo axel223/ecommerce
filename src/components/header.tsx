@@ -1,37 +1,54 @@
-const navLinks = [
-  { label: "Categories" },
-  { label: "Sale" },
-  { label: "Clearance" },
-  { label: "New stock" },
-  { label: "Trending" },
-];
-
-interface NavLinkProps {
-  children: React.ReactNode;
-}
-
-const NavLink: React.FC<NavLinkProps> = ({ children }) => <div>{children}</div>;
+import { api } from "~/utils/api";
+import { appName, header, navLinks } from "~/resourceStrings";
+import { useRouter } from "next/router";
 
 export const Header = () => {
+  const loggedIn = true;
+  const displayName = "Jon";
+
+  const router = useRouter();
+  const logoutMutation = api().user.logout.useMutation({
+    onSuccess: async () => {
+      await router.push("/login");
+    },
+  });
+
   return (
-    <header className="flex w-full flex-col bg-white pb-4">
-      <div className="w-full items-end justify-center bg-white py-3 px-10 text-xs text-zinc-800">
-        <nav className="flex justify-end gap-5">
-          <NavLink>Help</NavLink>
-          <NavLink>Orders & Returns</NavLink>
-          <NavLink>Hi, John</NavLink>
-        </nav>
+    <header>
+      <div className="w-full bg-white">
+        <div className="flex h-[35px] w-full justify-end">
+          <div className="mr-10 mt-2 flex items-center gap-4 text-[12px] font-light">
+            {header?.map((item: string, index: number) => (
+              <p className="cursor-pointer text-black" key={index}>
+                {item}
+              </p>
+            ))}
+            {loggedIn && (
+              <p className="cursor-pointer text-black">Hi, {displayName}</p>
+            )}
+            {loggedIn && (
+              <p
+                onClick={() => {
+                  logoutMutation.mutate();
+                }}
+                className={
+                  "cursor-pointer text-black underline duration-200 hover:scale-[1.1] hover:text-gray-600 hover:transition"
+                }
+              >
+                Logout
+              </p>
+            )}
+          </div>
+        </div>
       </div>
-      <div className="flex w-full items-start gap-5 self-center px-10">
-        <h1 className="shrink text-3xl font-bold text-black">
-          ECOMMERCE
-        </h1>
-        <nav className="my-auto flex grow justify-center gap-5 self-stretch text-base font-semibold text-black">
-          {navLinks.map(({ label }) => (
-            <NavLink key={label}>{label}</NavLink>
+      <div className="mx-10 flex h-[65px] items-center justify-between">
+        <div className="text-[32px] font-bold">{appName}</div>
+        <nav className="-ml-16 flex items-center gap-8 text-[16px] font-semibold">
+          {navLinks.map((label) => (
+            <div key={label}>{label}</div>
           ))}
         </nav>
-        <div className="flex justify-between gap-5">
+        <div className="flex justify-between gap-9">
           <img
             loading="lazy"
             src="https://cdn.builder.io/api/v1/image/assets/TEMP/c9f44306bbd0e51cef956764fb35d9e4b335c6ceedf4ac4305b4a39d615e8c5b?apiKey=9139e17dc5ec422a818dffbee82b8eff&"

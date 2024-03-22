@@ -1,12 +1,15 @@
-import jwt from "jsonwebtoken";
-import { JWT_KEY } from "~/utils/constant";
+import { jwtVerify } from "jose";
+import { EMAIL_JWT, JWT_KEY } from "~/utils/constant";
 import { db } from "./db";
 import { Cookies } from "./cookies";
 import { type NextApiRequest } from "next";
+import { getJwtSecret } from "~/lib/auth";
+import { TRPCError } from "@trpc/server";
 
 export type IUserInfo = {
   id: string;
   name: string;
+  verified: boolean;
 } | null;
 
 export const getUserInfo = async (request: NextApiRequest) => {
@@ -15,22 +18,57 @@ export const getUserInfo = async (request: NextApiRequest) => {
   if (!token) return null;
 
   try {
-    const { userId } = jwt.verify(
+    const { payload } = await jwtVerify(
       token,
-      process.env.JWT_SECRET ?? "",
-    ) as unknown as {
-      userId: string;
-    };
+      new TextEncoder().encode(getJwtSecret()),
+    );
 
-    const user = await db.user.findUnique({
-      where: { id: parseInt(userId) },
+    if (!payload?.userId) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "Token Error",
+      });
+    }
+
+    return db.user.findUnique({
+      where: { id: payload.userId as number },
       select: {
         id: true,
         name: true,
+        verified: true,
       },
     });
+  } catch (error) {
+    return null;
+  }
+};
 
-    return user;
+export const getUserInfoByEmail = async (request: NextApiRequest) => {
+  const token = Cookies.get(request, EMAIL_JWT);
+
+  if (!token) return null;
+
+  try {
+    const { payload } = await jwtVerify(
+      token,
+      new TextEncoder().encode(getJwtSecret()),
+    );
+
+    if (!payload?.email) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "Token Error",
+      });
+    }
+
+    return db.user.findUnique({
+      where: { email: payload.email as string},
+      select: {
+        id: true,
+        name: true,
+        verified: true,
+      },
+    });
   } catch (error) {
     return null;
   }

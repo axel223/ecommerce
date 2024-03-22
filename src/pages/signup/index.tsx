@@ -32,9 +32,12 @@ export const SignUpPage = () => {
     resolver: zodResolver(FormSchema),
   });
 
+  const generateOtpMutation = api().user.generateOtp.useMutation();
+
   const mutation = api().user.register.useMutation({
-    onSuccess: async () => {
-      await router.push("/login");
+    onSuccess: async (params) => {
+      generateOtpMutation.mutate();
+      await router.push('/verifyOtp', );
     },
   });
 

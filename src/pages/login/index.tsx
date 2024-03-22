@@ -3,6 +3,8 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
+import Link from "next/link";
+import { useRouter } from "next/router";
 
 import { api } from "~/utils/api";
 
@@ -10,8 +12,6 @@ import { Header } from "~/components/header";
 import { FormInput } from "~/components/formInput";
 import { FormHeader } from "~/components/formHeader";
 import { BannerStrip } from "~/components/bannerStrip";
-import Link from "next/link";
-import { useRouter } from "next/router";
 
 const FormSchema = z.object({
   email: z.string().email(),

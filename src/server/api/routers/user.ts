@@ -1,8 +1,7 @@
 import { z } from "zod";
-import jwt from "jsonwebtoken";
 import {
   authProcedure,
-  createTRPCRouter,
+  createTRPCRouter, tempAuthProcedure,
   unAuthProcedure,
 } from "~/server/api/trpc";
 
@@ -10,11 +9,12 @@ import { TRPCError } from "@trpc/server";
 
 import { db } from "~/server/db";
 import { decrypt, encrypt } from "~/server/crypto";
-import { JWT_KEY, maxAge } from "~/utils/constant";
+import {EMAIL_JWT, JWT_KEY, maxAge, OTP_KEY} from "~/utils/constant";
 import { Cookies } from "~/server/cookies";
 import * as process from "process";
 import { SignJWT } from "jose";
 import { nanoid } from "nanoid";
+import otpGenerator from "otp-generator";
 import { getJwtSecret } from "~/lib/auth";
 
 export const userRouter = createTRPCRouter({
@@ -28,12 +28,13 @@ export const userRouter = createTRPCRouter({
     )
     .mutation(async ({ input, ctx }) => {
       const { name, email, password } = input;
+      const { res } = ctx;
       const user = await db.user.findUnique({ where: { email } });
 
       if (!!user) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "invalid username",
+          message: "invalid email",
         });
       }
 
@@ -41,15 +42,114 @@ export const userRouter = createTRPCRouter({
         data: { email, name, password: encrypt(password) },
       });
 
+      if (!newUser) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "server Error",
+        });
+      }
+
+      const jwtToken = await new SignJWT({ email })
+        .setProtectedHeader({ alg: "HS256" })
+        .setJti(nanoid())
+        .setIssuedAt()
+        .setExpirationTime("30 min")
+        .sign(new TextEncoder().encode(getJwtSecret()));
+
+      Cookies.set(res, EMAIL_JWT, jwtToken, {
+        maxAge,
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        path: "/",
+        sameSite: "lax",
+      });
+
       return { userId: newUser.id };
+    }),
+  generateOtp: tempAuthProcedure.mutation(async ({ input, ctx }) => {
+    const { userInfoByEmail, res } = ctx;
+    if (!userInfoByEmail) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "invalid username",
+      });
+    }
+
+    const { id: userId } = userInfoByEmail;
+    const user = await db.user.findUnique({ where: { id: userId } });
+
+    if (!user) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "invalid username",
+      });
+    }
+
+    if (user.verified) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Already verified",
+      });
+    }
+
+    const otp = otpGenerator.generate(8, {
+      lowerCaseAlphabets: false,
+      upperCaseAlphabets: false,
+      specialChars: false,
+    });
+
+    Cookies.set(res, OTP_KEY, encrypt(otp), {
+      maxAge,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      sameSite: "lax",
+    });
+
+    return { userId: user.id };
+  }),
+  verifyOtp: tempAuthProcedure
+    .input(z.object({ otp: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      const { otp } = input;
+      const { userInfoByEmail, req } = ctx;
+      if (!userInfoByEmail) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "invalid username",
+        });
+      }
+
+      const encryptedOtp = Cookies.get(req, OTP_KEY);
+      console.log("otp", decrypt(encryptedOtp ?? ""), otp);
+
+      if(decrypt(encryptedOtp ?? "") !== otp) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Invalid OTP",
+        });
+      }
+      const { id: userId } = userInfoByEmail;
+      const updatedUser = await db.user.update({
+        where: {
+          id: userId,
+        },
+        data: {
+          verified: true,
+        },
+      });
+      return { userId: updatedUser.id };
     }),
   login: unAuthProcedure
     .input(z.object({ email: z.string().email(), password: z.string() }))
-    .mutation(async ({ input, ctx: { res } }) => {
+    .mutation(async ({ input, ctx }) => {
       const { email, password } = input;
+      const { res } = ctx;
+
       const user = await db.user.findUnique({
         where: {
           email: email,
+          verified: true,
         },
       });
 
@@ -68,7 +168,7 @@ export const userRouter = createTRPCRouter({
         });
       }
 
-      const jwtToken = await new SignJWT({})
+      const jwtToken = await new SignJWT({ userId: user.id })
         .setProtectedHeader({ alg: "HS256" })
         .setJti(nanoid())
         .setIssuedAt()

@@ -6,17 +6,16 @@ import { Checkbox } from "~/components/checkbox";
 import { PageLayout } from "~/components/layout";
 import { api } from "~/utils/api";
 
-const dataLimit = 6;
 export const UserInterests = ({}) => {
   const [selected, setSelected] = useState<number[]>([]);
-  const [page, setPage] = useState<number>(0);
+  const [currentPage, setCurrentPage] = useState<number>(1);
 
   const { data, isLoading } = api().category.getAll.useQuery();
 
   if (isLoading) return <p> Loading.... </p>;
-  console.log(window.sessionStorage);
 
-  if (!data || data.length === 0) return <div>User has not posted</div>;
+  if (!data || data.length === 0)
+    return <div>{`Categories doesn't Exist`}</div>;
 
   const handleCheckboxChange = (index: number) => {
     if (selected.includes(index)) {
@@ -26,8 +25,54 @@ export const UserInterests = ({}) => {
     }
   };
 
-  const pages = Array.from(Array(Math.ceil(data.length / dataLimit)).keys());
-  console.log(page);
+  const itemsPerPage = 6;
+  const totalPages = Math.ceil(data.length / itemsPerPage);
+  const intialPage = 1;
+  const lastPage = totalPages;
+
+  const handlePageNumberEvent = (pageNumber: number) => {
+    setCurrentPage(pageNumber);
+  };
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = data.slice(indexOfFirstItem, indexOfLastItem);
+
+  const renderPageNumbers = () => {
+    const numberOfVisiblePages = 7;
+    const halfVisiblePages = Math.floor(numberOfVisiblePages / 2);
+    let startPage = Math.max(currentPage - halfVisiblePages, 1);
+    const endPage = Math.min(startPage + numberOfVisiblePages - 1, totalPages);
+
+    if (endPage - startPage + 1 < numberOfVisiblePages) {
+      startPage = Math.max(endPage - numberOfVisiblePages + 1, 1);
+    }
+
+    const pages = [];
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(
+        <span
+          key={i}
+          onClick={() => handlePageNumberEvent(i)}
+          className={`mr-2 cursor-pointer ${
+            currentPage === i ? "font-semibold text-black" : "text-[#ACACAC]"
+          }`}
+        >
+          {i}
+        </span>,
+      );
+    }
+    return pages;
+  };
+
+  const prevPage = () => {
+    setCurrentPage((prevPage) => Math.max(prevPage - 1, 1));
+  };
+
+  const nextPage = () => {
+    setCurrentPage((prevPage) => Math.min(prevPage + 1, totalPages));
+  };
+
   return (
     <div>
       <FormHeader
@@ -37,48 +82,38 @@ export const UserInterests = ({}) => {
       <h2 className="mb-7 text-left text-xl font-medium text-black">
         {"My saved interests!"}
       </h2>
-      {data
-        .slice(page * dataLimit, (page + 1) * dataLimit)
-        .map((ele, index) => {
-          return (
-            <Checkbox
-              label={ele.name}
-              isSelected={selected.includes(ele.id)}
-              onCheckboxChange={() => handleCheckboxChange(ele.id)}
-              id={ele.name}
-              key={ele.name}
-            />
-          );
-        })}
-      <button className={"mr-1"} key={"first"} onClick={() => setPage(0)}>
-        {"<<"}
-      </button>
-      <button
-        className={"m-1"}
-        key={"prev"}
-        onClick={() => setPage(page - 1 > 0 ? page - 1 : page)}
-      >
-        {"<"}
-      </button>
-      {pages.map((number, index) => (
-        <button className={"m-1"} key={index} onClick={() => setPage(number)}>
-          {number + 1}
-        </button>
-      ))}
-      <button
-        className={"ml-1"}
-        key={"next"}
-        onClick={() => setPage(page + 1 != pages.length ? page + 1 : page)}
-      >
-        {">"}
-      </button>
-      <button
-        className={"ml-1"}
-        key={"last"}
-        onClick={() => setPage(pages.length - 1)}
-      >
-        {">>"}
-      </button>
+      {currentItems.map((ele, index) => {
+        return (
+          <Checkbox
+            label={ele.name}
+            isSelected={selected.includes(ele.id)}
+            onCheckboxChange={() => handleCheckboxChange(ele.id)}
+            id={ele.name}
+            key={ele.name}
+          />
+        );
+      })}
+      <div className="mb-0 mt-10 flex justify-start text-center">
+        <span
+          className="cursor-pointer"
+          onClick={() => handlePageNumberEvent(intialPage)}
+        >
+          &lt;&lt; &nbsp;
+        </span>
+        <span className="cursor-pointer" onClick={prevPage}>
+          &lt; &nbsp;
+        </span>
+        {renderPageNumbers()}
+        <span onClick={nextPage} className="cursor-pointer">
+          &gt; &nbsp;
+        </span>
+        <span
+          onClick={() => handlePageNumberEvent(lastPage)}
+          className="cursor-pointer"
+        >
+          &gt;&gt;
+        </span>
+      </div>
     </div>
   );
 };

@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
 
-let currentOTPIndex: number = 0;
+let currentOTPIndex = 0;
 export const OTPField = () => {
-  const [otp, setOtp] = useState(new Array(8).fill(""));
+  const [otp, setOtp] = useState<string[]>(new Array(8).fill(""));
   const [activeOTPIndex, setActiveOTPIndex] = useState(0);
 
   const inputRef = useRef<HTMLInputElement>(null);
