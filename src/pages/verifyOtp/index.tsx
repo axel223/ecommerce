@@ -23,7 +23,7 @@ export const VerificationPage = () => {
       <main className="mt-10 flex w-[40%] flex-col self-center rounded-3xl border border-solid border-stone-300 bg-white px-16 py-12 text-base max-md:px-5">
         <FormHeader
           heading="Verify your email"
-          description={`Enter the 8 digit code you have received on @`}
+          description={`Enter the 8 digit code you have received on your Email`}
         />
         <form
           id="otp-form"

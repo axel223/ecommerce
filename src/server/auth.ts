@@ -66,6 +66,7 @@ export const getUserInfoByEmail = async (request: NextApiRequest) => {
       select: {
         id: true,
         name: true,
+        email: true,
         verified: true,
       },
     });

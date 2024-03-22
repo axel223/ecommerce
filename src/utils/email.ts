@@ -7,24 +7,25 @@ export const sendEmail = async (
   text: string,
   html: string,
 ) => {
-  const { MAILID, MAILPASS } = process.env;
-  if (!MAILID || MAILPASS) {
+  const { MAIL_ID, MAIL_PASS } = process.env;
+  if (!MAIL_ID || !MAIL_PASS) {
     throw new TRPCError({
       code: "NOT_IMPLEMENTED",
       message: "Environment Variable not setup",
     });
   }
   const transporter = nodemailer.createTransport({
-    service: "gmail",
+    host: "live.smtp.mailtrap.io",
+    port: 587,
     auth: {
-      user: MAILID,
-      pass: MAILPASS,
+      user: MAIL_ID,
+      pass: MAIL_PASS,
     },
   });
 
   try {
     const info = await transporter.sendMail({
-      from: MAILID,
+      from: MAIL_ID,
       to: to,
       subject: subject,
       text: text,

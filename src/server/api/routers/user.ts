@@ -1,7 +1,8 @@
 import { z } from "zod";
 import {
   authProcedure,
-  createTRPCRouter, tempAuthProcedure,
+  createTRPCRouter,
+  tempAuthProcedure,
   unAuthProcedure,
 } from "~/server/api/trpc";
 
@@ -9,13 +10,14 @@ import { TRPCError } from "@trpc/server";
 
 import { db } from "~/server/db";
 import { decrypt, encrypt } from "~/server/crypto";
-import {EMAIL_JWT, JWT_KEY, maxAge, OTP_KEY} from "~/utils/constant";
+import { EMAIL_JWT, JWT_KEY, maxAge, OTP_KEY } from "~/utils/constant";
 import { Cookies } from "~/server/cookies";
 import * as process from "process";
 import { SignJWT } from "jose";
 import { nanoid } from "nanoid";
 import otpGenerator from "otp-generator";
 import { getJwtSecret } from "~/lib/auth";
+import { sendEmail } from "~/utils/email";
 
 export const userRouter = createTRPCRouter({
   register: unAuthProcedure
@@ -75,7 +77,7 @@ export const userRouter = createTRPCRouter({
       });
     }
 
-    const { id: userId } = userInfoByEmail;
+    const { id: userId, name: userName, email } = userInfoByEmail;
     const user = await db.user.findUnique({ where: { id: userId } });
 
     if (!user) {
@@ -97,6 +99,13 @@ export const userRouter = createTRPCRouter({
       upperCaseAlphabets: false,
       specialChars: false,
     });
+
+    await sendEmail(
+      email,
+      "Please verify your email",
+      `Hey ${userName},\n\nYour registration is completed successfully.\n\nYour email verification OTP is ${otp}\n\nThanks`,
+      "",
+    );
 
     Cookies.set(res, OTP_KEY, encrypt(otp), {
       maxAge,
@@ -123,7 +132,7 @@ export const userRouter = createTRPCRouter({
       const encryptedOtp = Cookies.get(req, OTP_KEY);
       console.log("otp", decrypt(encryptedOtp ?? ""), otp);
 
-      if(decrypt(encryptedOtp ?? "") !== otp) {
+      if (decrypt(encryptedOtp ?? "") !== otp) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Invalid OTP",
