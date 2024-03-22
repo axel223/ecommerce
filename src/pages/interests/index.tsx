@@ -10,24 +10,34 @@ export const UserInterests = ({}) => {
   const [selected, setSelected] = useState<number[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
 
-  const { data, isLoading } = api().category.getAll.useQuery();
+  const { data: categoryData, isLoading: categoryLoading } =
+    api().category.getAll.useQuery();
+  const { data: userData, isLoading: userDataLoading } =
+    api().user.getCategory.useQuery();
 
-  if (isLoading) return <p> Loading.... </p>;
+  const addCategoryMutation = api().user.addCategory.useMutation();
+  const removeCategoryMutation = api().user.removeCategory.useMutation();
 
-  if (!data || data.length === 0)
+  selected.push(...(userData?.categories ?? []).map((obj) => obj.id));
+
+  if (categoryLoading || userDataLoading) return <p> Loading.... </p>;
+
+  if (!categoryData || categoryData.length === 0)
     return <div>{`Categories doesn't Exist`}</div>;
 
   const handleCheckboxChange = (index: number) => {
     if (selected.includes(index)) {
       setSelected(selected.filter((i) => i !== index));
+      removeCategoryMutation.mutate({ categoryId: index.toString()});
     } else {
       setSelected([...selected, index]);
+      addCategoryMutation.mutate({ categoryId: index.toString()});
     }
   };
 
   const itemsPerPage = 6;
-  const totalPages = Math.ceil(data.length / itemsPerPage);
-  const intialPage = 1;
+  const totalPages = Math.ceil(categoryData.length / itemsPerPage);
+  const initialPage = 1;
   const lastPage = totalPages;
 
   const handlePageNumberEvent = (pageNumber: number) => {
@@ -36,7 +46,7 @@ export const UserInterests = ({}) => {
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = data.slice(indexOfFirstItem, indexOfLastItem);
+  const currentItems = categoryData.slice(indexOfFirstItem, indexOfLastItem);
 
   const renderPageNumbers = () => {
     const numberOfVisiblePages = 7;
@@ -82,7 +92,7 @@ export const UserInterests = ({}) => {
       <h2 className="mb-7 text-left text-xl font-medium text-black">
         {"My saved interests!"}
       </h2>
-      {currentItems.map((ele, index) => {
+      {currentItems.map((ele) => {
         return (
           <Checkbox
             label={ele.name}
@@ -96,7 +106,7 @@ export const UserInterests = ({}) => {
       <div className="mb-0 mt-10 flex justify-start text-center">
         <span
           className="cursor-pointer"
-          onClick={() => handlePageNumberEvent(intialPage)}
+          onClick={() => handlePageNumberEvent(initialPage)}
         >
           &lt;&lt; &nbsp;
         </span>

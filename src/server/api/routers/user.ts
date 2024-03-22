@@ -203,6 +203,25 @@ export const userRouter = createTRPCRouter({
       sameSite: "lax",
     });
   }),
+  getCategory: authProcedure
+    .query(async ({ input, ctx }) => {
+      const { userId } = ctx;
+      const updatedUser = await db.user.findUnique({
+        where: {
+          id: userId,
+        },
+        include: {
+          categories: true
+        }
+      });
+
+      if(!updatedUser) {
+        return {
+          user: null, categories: []
+        }
+      }
+      return { user: updatedUser.id, categories: updatedUser.categories};
+    }),
   addCategory: authProcedure
     .input(
       z.object({
@@ -219,6 +238,30 @@ export const userRouter = createTRPCRouter({
         data: {
           categories: {
             connect: {
+              id: parseInt(categoryId),
+            },
+          },
+        },
+      });
+
+      return { userId: updatedUser.id };
+    }),
+  removeCategory: authProcedure
+    .input(
+      z.object({
+        categoryId: z.string(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const { categoryId } = input;
+      const { userId } = ctx;
+      const updatedUser = await db.user.update({
+        where: {
+          id: userId,
+        },
+        data: {
+          categories: {
+            disconnect: {
               id: parseInt(categoryId),
             },
           },
