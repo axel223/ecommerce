@@ -11,6 +11,9 @@ export async function middleware(req: NextRequest) {
       console.error(JSON.stringify(err)),
     ));
 
+  if (req.nextUrl.pathname.endsWith("/"))
+    return NextResponse.redirect(new URL("/login", req.url));
+
   if (req.nextUrl.pathname.startsWith("/login") && !verifiedToken)
     return NextResponse.next();
 
@@ -23,5 +26,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/interests", "/login"],
+  matcher: ["/interests", "/login", "/", "/signup"],
 };
