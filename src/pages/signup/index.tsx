@@ -3,6 +3,7 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/router";
 import toast from "react-hot-toast";
+import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { api } from "~/utils/api";
@@ -11,8 +12,9 @@ import { Header } from "~/components/header";
 import { FormInput } from "~/components/formInput";
 import { FormHeader } from "~/components/formHeader";
 import { BannerStrip } from "~/components/bannerStrip";
-import Link from "next/link";
+import { PageLayout } from "~/components/layout";
 
+import { SignUpPageStrings } from "~/resourceStrings";
 
 const FormSchema = z.object({
   name: z.string().min(3).max(20),
@@ -37,76 +39,73 @@ export const SignUpPage = () => {
   const mutation = api().user.register.useMutation({
     onSuccess: async (params) => {
       generateOtpMutation.mutate();
-      await router.push('/verifyOtp', );
+      await router.push("/verifyOtp");
     },
   });
 
-
   return (
-    <div className="flex flex-col rounded bg-white pb-20">
-      <main className="mt-10 flex w-[40%] flex-col self-center rounded-3xl border border-solid border-stone-300 bg-white px-16 py-12 text-base max-md:px-5">
-        <FormHeader heading="Create your account" />
-        <form
-          onSubmit={handleSubmit(
-            async (formData) => {
-              mutation.mutate(formData);
-              const userId = mutation.data;
+    <div>
+      <FormHeader heading={SignUpPageStrings.heading} />
+      <form
+        onSubmit={handleSubmit(
+          async (formData) => {
+            mutation.mutate(formData);
+            const userId = mutation.data;
 
-              if (userId) {
-                reset();
-                toast.success("register successful");
-              }
-            },
-            (errors) => {
-              console.error(errors);
-              toast.error("invalid Params");
-            },
-          )}
+            if (userId) {
+              reset();
+              toast.success("register successful");
+            }
+          },
+          (errors) => {
+            console.error(errors);
+            toast.error("invalid Params");
+          },
+        )}
+      >
+        <FormInput<FormType>
+          register={register}
+          label="Name"
+          placeholder="Enter"
+          name="name"
+          id="name"
+          protectedField={false}
+          className="relative mt-2 box-border flex w-full shrink-0 flex-col rounded border border-solid border-stone-300 p-2.5"
+        />
+        <FormInput<FormType>
+          register={register}
+          label="Email"
+          placeholder="Enter"
+          name="email"
+          id="email"
+          protectedField={false}
+          className="relative mt-2 box-border flex w-full shrink-0 flex-col rounded border border-solid border-stone-300 p-2.5"
+        />
+        <FormInput<FormType>
+          register={register}
+          label="Password"
+          placeholder="Enter"
+          name="password"
+          id="password"
+          protectedField={true}
+          className="relative mt-2 box-border flex w-full shrink-0 flex-col rounded border border-solid border-stone-300 p-2.5"
+        />
+        <button
+          type="submit"
+          className=" .box-border mt-[40px] flex w-full shrink-0 cursor-pointer appearance-none flex-col items-center rounded bg-black px-6 py-4 text-center font-medium tracking-wider text-[white]"
         >
-          <FormInput<FormType>
-            register={register}
-            label="Name"
-            placeholder="Enter"
-            name="name"
-            id="name"
-            protectedField={false}
-            className="relative mt-2 box-border flex w-full shrink-0 flex-col rounded border border-solid border-stone-300 p-2.5"
-          />
-          <FormInput<FormType>
-            register={register}
-            label="Email"
-            placeholder="Enter"
-            name="email"
-            id="email"
-            protectedField={false}
-            className="relative mt-2 box-border flex w-full shrink-0 flex-col rounded border border-solid border-stone-300 p-2.5"
-          />
-          <FormInput<FormType>
-            register={register}
-            label="Password"
-            placeholder="Enter"
-            name="password"
-            id="password"
-            protectedField={true}
-            className="relative mt-2 box-border flex w-full shrink-0 flex-col rounded border border-solid border-stone-300 p-2.5"
-          />
-          <button
-            type="submit"
-            className=" .box-border mt-[40px] flex w-full shrink-0 cursor-pointer appearance-none flex-col items-center rounded bg-black px-6 py-4 text-center font-medium tracking-wider text-[white]"
-          >
-            {"CREATE ACCOUNT"}
-          </button>
-        </form>
-        <div className="mt-8 flex gap-3.5 self-center">
-          <p className="grow text-zinc-800">Have an Account?</p>
-          <Link
-            className="relative mb-auto box-border shrink-0 cursor-pointer appearance-none rounded text-center text-black"
-            href={"/login"}
-          >
-            {"LOGIN"}
-          </Link>
-        </div>
-      </main>
+          {SignUpPageStrings.signUpButton}
+        </button>
+      </form>
+      <div className="mt-8 gap-3.5 w-full flex justify-center">
+        <p className="text-zinc-800">{SignUpPageStrings.loginPrompt}</p>
+        <Link
+          className="relative mb-auto box-border shrink-0 cursor-pointer appearance-none rounded text-center text-black"
+          href={"/login"}
+        >
+          {SignUpPageStrings.loginButton}
+        </Link>
+      </div>
     </div>
   );
 };
@@ -116,7 +115,9 @@ export default function Home() {
     <>
       <Header />
       <BannerStrip />
-      <SignUpPage />
+      <PageLayout>
+        <SignUpPage />
+      </PageLayout>
     </>
   );
 }

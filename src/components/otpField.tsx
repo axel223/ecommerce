@@ -42,7 +42,7 @@ export const OTPField = () => {
 
   return (
     <div>
-      <label htmlFor={"otp"} className="mt-9 mb-3 text-black">
+      <label htmlFor={"otp"} className="mb-3 mt-9 text-black">
         Code
       </label>
       <div className={"flex items-center justify-between"}>

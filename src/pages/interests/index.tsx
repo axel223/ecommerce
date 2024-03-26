@@ -28,10 +28,10 @@ export const UserInterests = ({}) => {
   const handleCheckboxChange = (index: number) => {
     if (selected.includes(index)) {
       setSelected(selected.filter((i) => i !== index));
-      removeCategoryMutation.mutate({ categoryId: index.toString()});
+      removeCategoryMutation.mutate({ categoryId: index.toString() });
     } else {
       setSelected([...selected, index]);
-      addCategoryMutation.mutate({ categoryId: index.toString()});
+      addCategoryMutation.mutate({ categoryId: index.toString() });
     }
   };
 

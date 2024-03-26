@@ -13,20 +13,16 @@ export const Checkbox: FC<CheckboxInputProps> = ({
   id,
 }) => {
   return (
-      <div className="flex items-center mb-6">
-        <input
-            type="checkbox"
-            name={label}
-            id={id}
-            checked={isSelected}
-            onChange={onCheckboxChange}
-            className="w-6 h-6 mr-3 text-black bg-[#CCCCCC] rounded border-transparent focus:ring-transparent"
-        />
-        <label
-            className="text-base text-left text-black"
-        >
-          {label}
-        </label>
-      </div>
+    <div className="mb-6 flex items-center">
+      <input
+        type="checkbox"
+        name={label}
+        id={id}
+        checked={isSelected}
+        onChange={onCheckboxChange}
+        className="mr-3 h-6 w-6 rounded border-transparent bg-[#CCCCCC] text-black focus:ring-transparent"
+      />
+      <label className="text-left text-base text-black">{label}</label>
+    </div>
   );
 };

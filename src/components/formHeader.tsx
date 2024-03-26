@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { type FC } from "react";
 
 interface FormHeaderProps {
   heading: string;
@@ -16,12 +16,14 @@ export const FormHeader: FC<FormHeaderProps> = ({
       <h2 className="w-auto self-center text-3xl font-semibold text-black">
         {heading}
       </h2>
-      {subHeading && <p className="mt-9 self-center text-2xl font-medium text-black">
-        {subHeading}
-      </p>}
-      {description && <p className="mt-[13px] self-center text-black">
-        {description}
-      </p>}
+      {subHeading && (
+        <p className="mt-9 self-center text-2xl font-medium text-black">
+          {subHeading}
+        </p>
+      )}
+      {description && (
+        <p className="mt-[13px] self-center text-black">{description}</p>
+      )}
     </div>
   );
 };

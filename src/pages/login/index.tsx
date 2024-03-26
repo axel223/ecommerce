@@ -12,6 +12,9 @@ import { Header } from "~/components/header";
 import { FormInput } from "~/components/formInput";
 import { FormHeader } from "~/components/formHeader";
 import { BannerStrip } from "~/components/bannerStrip";
+import { PageLayout } from "~/components/layout";
+
+import { LoginPageStrings } from "~/resourceStrings";
 
 const FormSchema = z.object({
   email: z.string().email(),
@@ -37,66 +40,63 @@ function LoginPage() {
   });
 
   return (
-    <div className="flex flex-col rounded bg-white pb-20">
-      <main className="mt-10 flex w-[40%] flex-col self-center rounded-3xl border border-solid border-stone-300 bg-white px-16 py-12 text-base max-md:px-5">
-        <FormHeader
-          heading="Login"
-          subHeading="Welcome back to ECOMMERCE"
-          description="The next gen business marketplace"
+    <div>
+      <FormHeader
+        heading={LoginPageStrings.heading}
+        subHeading={LoginPageStrings.subHeading}
+        description={LoginPageStrings.description}
+      />
+      <form
+        onSubmit={handleSubmit(
+          async (formData) => {
+            mutation.mutate(formData);
+            const response = mutation.data;
+            if (response) {
+              reset();
+              toast.success("Login successful");
+            }
+          },
+          (errors) => {
+            console.error(errors);
+            toast.error("invalid email or password");
+          },
+        )}
+      >
+        <FormInput<FormType>
+          register={register}
+          label="Email"
+          placeholder="Enter"
+          name="email"
+          id="email"
+          protectedField={false}
+          className="relative mt-2 box-border flex w-full shrink-0 flex-col rounded border border-solid border-stone-300 p-2.5"
         />
-        <form
-          onSubmit={handleSubmit(
-            async (formData) => {
-              mutation.mutate(formData);
-              const response = mutation.data;
-              if (response) {
-                reset();
-                toast.success("Login successful");
-              }
-            },
-            (errors) => {
-              console.error(errors);
-              toast.error("invalid email or password");
-            },
-          )}
+        <FormInput<FormType>
+          register={register}
+          label="Password"
+          placeholder="Enter"
+          name="password"
+          id="password"
+          protectedField={true}
+          className="relative mt-2 box-border flex w-full shrink-0 flex-col rounded border border-solid border-stone-300 p-2.5"
+        />
+        <button
+          type="submit"
+          className=" .box-border mt-[40px] flex w-full shrink-0 cursor-pointer appearance-none flex-col items-center rounded bg-black px-6 py-4 text-center font-medium tracking-wider text-[white]"
         >
-          <FormInput<FormType>
-            register={register}
-            label="Email"
-            placeholder="Enter"
-            name="email"
-            id="email"
-            protectedField={false}
-            className="relative mt-2 box-border flex w-full shrink-0 flex-col rounded border border-solid border-stone-300 p-2.5"
-          />
-          <FormInput<FormType>
-            register={register}
-            label="Password"
-            placeholder="Enter"
-            name="password"
-            id="password"
-            protectedField={true}
-            className="relative mt-2 box-border flex w-full shrink-0 flex-col rounded border border-solid border-stone-300 p-2.5"
-          />
-          <button
-            type="submit"
-            className=" .box-border mt-[40px] flex w-full shrink-0 cursor-pointer appearance-none flex-col items-center rounded bg-black px-6 py-4 text-center font-medium tracking-wider text-[white]"
-            onClick={() => console.log("login")}
-          >
-            {"LOGIN"}
-          </button>
-        </form>
-        <div className="mt-7 h-px shrink-0 bg-stone-300 max-md:max-w-full" />
-        <div className="mt-8 flex gap-3.5 self-center">
-          <p className="grow text-zinc-800">{`Don't have an Account?`}</p>
-          <Link
-            className="relative mb-auto box-border shrink-0 cursor-pointer appearance-none rounded text-center text-black"
-            href={"/signup"}
-          >
-            {"SIGN UP"}
-          </Link>
-        </div>
-      </main>
+          {LoginPageStrings.loginButton}
+        </button>
+      </form>
+      <div className="mt-7 h-px shrink-0 bg-stone-300" />
+      <div className="mt-8 flex w-full justify-center gap-3.5">
+        <p className="text-zinc-800">{LoginPageStrings.signUpPrompt}</p>
+        <Link
+          className="relative mb-auto box-border shrink-0 cursor-pointer appearance-none rounded text-center text-black"
+          href={"/signup"}
+        >
+          {LoginPageStrings.signUpButton}
+        </Link>
+      </div>
     </div>
   );
 }
@@ -105,7 +105,9 @@ export default function Home() {
     <>
       <Header />
       <BannerStrip />
-      <LoginPage />
+      <PageLayout>
+        <LoginPage />
+      </PageLayout>
     </>
   );
 }

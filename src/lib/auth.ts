@@ -7,9 +7,9 @@ export interface UserJWTPayload {
 
 export const getJwtSecret = () => {
   const secret = process.env.JWT_SECRET;
-
-  if (!secret || secret.length === 0) throw new Error("JWT_SECRET is not set");
-
+  if (!secret || secret.length === 0) {
+    throw new Error("JWT_SECRET is not set");
+  }
   return secret;
 };
 
@@ -17,7 +17,7 @@ export const verifyToken = async (token: string) => {
   try {
     const verified = await jwtVerify(
       token,
-      new TextEncoder().encode(getJwtSecret())
+      new TextEncoder().encode(getJwtSecret()),
     );
     return verified.payload as UserJWTPayload;
   } catch (error) {
